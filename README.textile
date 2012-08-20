@@ -1,0 +1,17 @@
+h1. logcat-colorfilter
+
+An @awk@ colorizing filter for use with @adb logcat@.
+
+h2. How does it work?
+
+It is a mere @awk@ script, that understands the several output format produced by @adb logcat@, splits them up, colorizes each part with escape codes, does a bit of reformatting, and outputs the result in the console.
+
+h2. Installation
+
+Just drop the file in @/usr/bin/@ or @/usr/local/bin/@, or adapt your @PATH@ environment variable to point to the folder where the script resides.
+
+h2. Usage
+
+Works with all the output formats of @adb logcat@:
+
+bc. adb logcat [-v brief|process|tag|thread|time|threadtime|raw] | logcat-colorfilter

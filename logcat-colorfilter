@@ -1,0 +1,77 @@
+#!/usr/bin/awk -f
+{
+	# Format parameters order:
+	# 1: time
+	# 2: pid
+	# 3: threadid
+	# 4: level
+	# 5: tag
+	# 6: message
+	found = 0;
+	if (0 != match($0, /^([0-9][0-9]-[0-9][0-9]) +([0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9][0-9][0-9]) +([0-9]+) +([0-9]+) +(.) +([^:]*) *: +(.*)$/, parts)) {
+		# threadtime
+		found = 1;
+		format = "[%1$s] (%2$3s:%3$3s) %4$s/%5$s: %6$s";
+		day = parts[1];
+		time = parts[2];
+		pid = parts[3];
+		thread = parts[4];
+		level = parts[5];
+		tag = parts[6];
+		msg = parts[7];
+	} else if (0 != match($0, /^([0-9][0-9]-[0-9][0-9]) +([0-9][0-9]:[0-9][0-9]:[0-9][0-9]\.[0-9][0-9][0-9]) +(.)\/([^(]*) *\( *([^)]*)\): (.*)$/, parts)) {
+		# time
+		found = 1;
+		format = "[%1$s] (%2$3s) %4$s/%5$s: %6$s";
+		day = parts[1];
+		time = parts[2];
+		level = parts[3];
+		tag = parts[4];
+		pid = parts[5];
+		msg = parts[6];
+	} else if (0 != match($0, /^(.)\/([^(]*) *\( *([0-9]+)\): (.*)$/, parts)) {
+		# brief (default)
+		found = 1;
+		format = "(%2$5s) %4$s/%5$s: %6$s";
+		level = parts[1];
+		tag =  parts[2];
+		pid = parts[3];
+		msg = parts[4];
+	} else if (0 != match($0, /^(.)\( *([0-9]+)\) (.*) *\(([^)]*)\)\r?$/, parts)) {
+		# process
+		found = 1;
+		format = "(%2$5s) %4$s/%5$s: %6$s";
+		level = parts[1];
+		pid = parts[2];
+		msg = parts[3];
+		tag = parts[4];
+	} else if (0 != match($0, /^(.)\/([^:]*): (.*)$/, parts)) {
+		# tag
+		found = 1;
+		format = "%4$s/%5$s: %6$s";
+		level = parts[1];
+		tag =  parts[2];
+		msg = parts[3];
+	}
+	if (found != 0) {
+		if (length(tag) < 30)
+			tag = substr(tag "                              ", 1, 30);
+		if (level == "V") {
+			printf("\x1B[30;1m");
+		} else if (level == "D") {
+			printf("\x1B[34;1m");
+		} else if (level == "I") {
+			printf("\x1B[32;1m");
+		} else if (level == "W") {
+			printf("\x1B[33;1m");
+		} else if (level == "E") {
+			printf("\x1B[31;1m");
+		} else if (level == "F") {
+			printf("\x1B[41;37;1m");
+		}
+		printf format, time, pid, thread, level, tag, msg;
+		printf "\x1B[0m\n";
+	} else {
+		print $0;
+	}
+}
