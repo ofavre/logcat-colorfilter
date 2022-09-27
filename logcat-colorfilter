@@ -108,4 +108,5 @@
 	} else {
 		print $0;
 	}
+	fflush();
 }
